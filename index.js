@@ -26,6 +26,18 @@ var startFormData = objToFormData({
 	'_target1': 'START'
 });
 
+var thirdFormData = objToFormData({
+	'formFields.Complaint Type' : '1-6VL-135',
+	'formFields.Descriptor 1' : '1-6VN-327',
+	'formFields.Descriptor 2': '1-6VO-1637',
+	'formFields.Taxi Driver Name': '',
+	'formFields.Taxi License Number':'',
+	'formFields.Taxi Medallion Number':'5J18',
+	'formFields.Complaint Details': 'taxi parked in bike lane',
+	'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
+	'_target2':''
+});
+
 //todo - create functions that compose fetches and return promises
 // create declarative language for speaking with server.
 /*
@@ -38,6 +50,10 @@ var reqCookie = '';
 
 var processSecondResponse = function( res ){
 	console.log(res.status);
+		console.log( "second item" );
+		//console.log( body );
+		console.log( 'done first meaningless form' );
+		/*
 	res.text().then( body => {
 		console.log( "second item" );
 		//console.log( body );
@@ -49,20 +65,17 @@ var processSecondResponse = function( res ){
 				'Cookie': reqCookie,
 			}
 		});
-		*/
 	})
+	*/
+	return res.text();
 };
 
 var secondRequest = function(){
-	return fetch( url311, {
-		method: 'post',
-		headers: {
-			'Cookie': reqCookie,
-			'Content-Length' : startFormData.getLengthSync(),
-			userAgent
-		},
-		body : startFormData
-	}) //.then( processSecondResponse );
+	return fetch311( startFormData );
+};
+
+var thirdRequest = function(){
+	return fetch311( thirdFormData );
 };
 
 var setSessionId = function( res ){
@@ -78,11 +91,37 @@ var setSessionId = function( res ){
 	return res.text();
 }
 
-let newSession = function(){
-	return fetch( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
+let fetch311 = function( formData, url = url311){
+	let config = {
+		method: 'post',
+		headers: {
+			'Cookie': reqCookie,
+			'user-agent': userAgent
+		}
+	};
+
+	//only a convenince for single arg with url call
+	if( typeof formData === 'string' ){
+		url = formData;
+		formData = null;
+	}
+
+	if( formData ){
+		config.body = formData;
+		config.headers['Content-Length'] = formData.getLengthSync();
+	}
+
+	return fetch( url, config);
 };
 
+let newSession = function(){
+	return fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
+};
+
+//todo return errors
 newSession()
 	.then( setSessionId )
 	.then( secondRequest )
-	.then( processSecondResponse );
+	.then( processSecondResponse )
+	.then( thirdRequest )
+	.then( processSecondResponse )
