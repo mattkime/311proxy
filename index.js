@@ -54,7 +54,7 @@ var processSecondResponse = function( res ){
 };
 
 var secondRequest = function(){
-	fetch( url311, {
+	return fetch( url311, {
 		method: 'post',
 		headers: {
 			'Cookie': reqCookie,
@@ -62,21 +62,27 @@ var secondRequest = function(){
 			userAgent
 		},
 		body : startFormData
-	}).then( processSecondResponse );
+	}) //.then( processSecondResponse );
 };
 
-fetch( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger')
-	.then( res => {
-		console.log(res.status);
-		var cookies = res.headers.get('set-cookie'),
-			{ JSESSIONID } = cookie.parse(cookies);
+var setSessionId = function( res ){
+	let cookies = res.headers.get('set-cookie'),
+		{ JSESSIONID } = cookie.parse(cookies);
 
-		if( res.status != 200 ){ console.log('ERROR'); }
+	if( res.status != 200 ){ console.log('ERROR'); }
 
-		reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
-		secondRequest();
+	reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
 
-		console.log( JSESSIONID );
+	console.log( 'session id:', JSESSIONID );
 
-		return res.text()
-	});
+	return res.text();
+}
+
+let newSession = function(){
+	return fetch( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
+};
+
+newSession()
+	.then( setSessionId )
+	.then( secondRequest )
+	.then( processSecondResponse );
