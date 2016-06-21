@@ -1,7 +1,9 @@
 var fetch = require('node-fetch'),
 	cookie = require('cookie'),
 	FormData = require('form-data'),
-	http = require('http');
+	http = require('http'),
+	jquery = require('jquery'),
+	env = require('jsdom').env;
 
 var url311 = 'https://www1.nyc.gov/apps/311universalintake/form.htm',
 	userAgent= 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36';
@@ -78,6 +80,16 @@ var setSessionId = function( res ){
 }
 
 let fetch311 = function( formData, url = url311){
+	function checkStatus(response) {
+		if (response.status >= 200 && response.status < 300) {
+			return response;
+		} else {
+			var error = new Error(response.statusText);
+			error.response = response;
+			throw error;
+		}
+	}
+
 	let config = {
 		method: 'post',
 		headers: {
@@ -97,17 +109,60 @@ let fetch311 = function( formData, url = url311){
 		config.headers['Content-Length'] = formData.getLengthSync();
 	}
 
-	return fetch( url, config);
+	return fetch( url, config).then(checkStatus);
 };
 
 let newSession = function(){
 	return fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
 };
 
-//todo return errors
-newSession()
-	.then( setSessionId )
-	.then( secondRequest )
-	.then( processSecondResponse )
-	.then( thirdRequest )
-	.then( processSecondResponse )
+function nameValueToQuery( value ){
+	return `[name='${value}']`;
+}
+
+function checkHtml( html ){
+	env(html, function (errors, window) {
+		if( errors ){
+			console.log(errors);
+		}
+		var $ = jquery(window);
+		console.log($(nameValueToQuery('_target1')).val() == "START")
+	});
+
+
+	return html;
+};
+
+function submitData(data){
+	let pageCount = 0;
+	var nextPost = () => fetch311( data[pageCount++]);
+	//todo return errors
+	newSession()
+		.then( setSessionId )
+		.then( checkHtml )
+		//.then( secondRequest )
+		.then( nextPost(data) )
+		.then( processSecondResponse )
+		.then( thirdRequest )
+		.then( processSecondResponse );
+};
+
+var data = [{
+		'formFields.X_CHAR1_1': '__No',
+		'formFields.Vehicle Type': '__Yellow',
+		'formFields.Affidavit': '__Yes',
+		'formFields.Hearing': '__Yes',
+		'_target1': 'START',
+	}, {
+		'formFields.Complaint Type' : '1-6VL-135',
+		'formFields.Descriptor 1' : '1-6VN-327',
+		'formFields.Descriptor 2': '1-6VO-1637',
+		'formFields.Taxi Driver Name': '',
+		'formFields.Taxi License Number':'',
+		'formFields.Taxi Medallion Number':'5J18',
+		'formFields.Complaint Details': 'taxi parked in bike lane',
+		'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
+		'_target2':'',
+	}];
+
+submitData( data );
