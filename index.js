@@ -53,9 +53,11 @@ funnction startRequest(){
 var reqCookie = '';
 
 var processSecondResponse = function( res ){
+	console.log("----- process 2nd response");
 	console.log(res.status);
 	console.log( "second item" );
 	console.log( 'done first meaningless form' );
+	console.log("---end process 2nd response");
 	return res.text();
 };
 
@@ -136,7 +138,9 @@ function checkHtml( html ){
 
 function submitData(data){
 	let pageCount = 0;
-	var nextPost = () => fetch311( objToFormData( data[pageCount++] ) );
+	var nextPost = function(){
+		return fetch311( objToFormData( data[pageCount++] ) )
+	};
 	//todo return errors
 	newSession()
 		.then( setSessionId )

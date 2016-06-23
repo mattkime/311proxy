@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel index.js --out-file index-compiled.js --source-maps",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "-start": "NODE_ENV=\"dev\" babel-node index.js",
+    "-start": "NODE_ENV=\"dev\" npm run build && node index-compiled.js",
     "start": "npm run build && node index-compiled.js",
     "debug": "npm run build && node-debug index-compiled.js"
   },
