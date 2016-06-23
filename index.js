@@ -1,3 +1,4 @@
+require('source-map-support').install();
 var fetch = require('node-fetch'),
 	cookie = require('cookie'),
 	FormData = require('form-data'),
