@@ -136,7 +136,7 @@ function checkHtml( html ){
 
 function submitData(data){
 	let pageCount = 0;
-	var nextPost = () => fetch311( data[pageCount++]);
+	var nextPost = () => fetch311( objToFormData( data[pageCount++] ) );
 	//todo return errors
 	newSession()
 		.then( setSessionId )
@@ -144,7 +144,8 @@ function submitData(data){
 		//.then( secondRequest )
 		.then( nextPost(data) )
 		.then( processSecondResponse )
-		.then( thirdRequest )
+		//.then( thirdRequest )
+		.then( nextPost(data) )
 		.then( processSecondResponse );
 };
 
