@@ -1,10 +1,11 @@
 var fetch = require('node-fetch'),
 	cookie = require('cookie'),
 	FormData = require('form-data'),
-	http = require('http');
+	http = require('http'),
+	jsdom = require('jsdom'),
+	jquery = require('jquery'),
+	beautify = require('js-beautify').html;
 
-var url311 = 'https://www1.nyc.gov/apps/311universalintake/form.htm',
-	userAgent= 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36';
 
 if( process.env.NODE_ENV == 'dev'){
 	//for working with charles proxy
@@ -64,27 +65,32 @@ var thirdRequest = function(){
 	return fetch311( thirdFormData );
 };
 
-var setSessionId = function( res ){
-	let cookies = res.headers.get('set-cookie'),
-		{ JSESSIONID } = cookie.parse(cookies);
 
-	if( res.status != 200 ){ console.log('ERROR'); }
 
-	reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
+function sendData(){
+	//todo return errors
+	newSession()
+		.then( setSessionId )
+		.then( secondRequest )
+		.then( processSecondResponse )
+		.then( thirdRequest )
+		.then( processSecondResponse )
+};
 
-	console.log( 'session id:', JSESSIONID );
+//sendData();
 
-	return res.text();
-}
+function reporter(){
+	var url311 = 'https://www1.nyc.gov/apps/311universalintake/form.htm',
+		userAgent= 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36';
 
-let fetch311 = function( formData, url = url311){
-	let config = {
-		method: 'post',
-		headers: {
-			'Cookie': reqCookie,
-			'user-agent': userAgent
-		}
-	};
+	let fetch311 = function( formData, url = url311){
+		let config = {
+			method: 'post',
+			headers: {
+				'Cookie': reqCookie,
+				'user-agent': userAgent
+			}
+		};
 
 	//only a convenince for single arg with url call
 	if( typeof formData === 'string' ){
@@ -99,15 +105,37 @@ let fetch311 = function( formData, url = url311){
 
 	return fetch( url, config);
 };
+	let newSession = function(){
+		return fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger')
+			.then(setSessionId);
+	};
 
-let newSession = function(){
-	return fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
-};
+	var setSessionId = function( res ){
+		let cookies = res.headers.get('set-cookie'),
+			{ JSESSIONID } = cookie.parse(cookies);
 
-//todo return errors
-newSession()
-	.then( setSessionId )
-	.then( secondRequest )
-	.then( processSecondResponse )
-	.then( thirdRequest )
-	.then( processSecondResponse )
+		if( res.status != 200 ){ console.log('ERROR'); }
+
+		reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
+
+		console.log( 'session id:', JSESSIONID );
+		res.text().then(function(text){
+			console.log('text');
+			jsdom.env(text, ["http://code.jquery.com/jquery.js"], function(err, window){
+				//var formIds = jquery(window, "#formId")
+				//console.log( formIds.text() );
+				console.log( beautify(window.$("#formId").parent().html(), {"preserve_newlines":false}) );
+			});
+		});
+
+		return res.text();
+	}
+
+	return {
+		report : function(){
+			newSession()
+		}
+	};
+}
+
+reporter().report();
