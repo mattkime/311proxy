@@ -121,11 +121,9 @@ function reporter(){
 		console.log( 'session id:', JSESSIONID );
 		res.text().then(function(text){
 			console.log('text');
-			jsdom.env(text, ["http://code.jquery.com/jquery.js"], function(err, window){
-				//var formIds = jquery(window, "#formId")
-				//console.log( formIds.text() );
-				console.log( beautify(window.$("#formId").parent().html(), {"preserve_newlines":false}) );
-			});
+			let document = jsdom.jsdom(text);
+			let formId = document.querySelectorAll("#formId");
+			console.log( formId.length );
 		});
 
 		return res.text();
