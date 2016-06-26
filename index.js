@@ -3,7 +3,7 @@ var fetch = require('node-fetch'),
 	FormData = require('form-data'),
 	http = require('http'),
 	jsdom = require('jsdom'),
-	jquery = require('jquery'),
+	Rx = require('rxjs'),
 	beautify = require('js-beautify').html;
 
 
@@ -106,11 +106,11 @@ function reporter(){
 	return fetch( url, config);
 };
 	let newSession = function(){
-		return fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger')
-			.then(setSessionId);
+		let promise = fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
+		return Rx.Observable.fromPromise(promise).flatMap(setSessionId(this.sessionId));
 	};
 
-	var setSessionId = function( res ){
+	var setSessionId = sessionId => res => {
 		let cookies = res.headers.get('set-cookie'),
 			{ JSESSIONID } = cookie.parse(cookies);
 
@@ -118,22 +118,26 @@ function reporter(){
 
 		reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
 
-		console.log( 'session id:', JSESSIONID );
-		res.text().then(function(text){
-			console.log('text');
-			let document = jsdom.jsdom(text);
-			let formId = document.querySelectorAll("#formId");
-			console.log( formId.length );
-		});
+		console.log( sessionId );
 
-		return res.text();
-	}
+		console.log( 'session id:', JSESSIONID );
+		sessionId = JSESSIONID;
+
+		return Rx.Observable.fromPromise( res.text() )
+			.map(function(value){
+				let formId = jsdom.jsdom( value ).querySelectorAll("#formId");
+				return formId.length === 1 ? sessionId : null;
+			});
+	};
 
 	return {
+		sessionId : 12345,
 		report : function(){
-			newSession()
+			var observ = newSession.call(this);
+			console.log(this.sessionId);
+			return observ;
 		}
 	};
 }
 
-reporter().report();
+reporter().report().subscribe((val) => console.log(val));
