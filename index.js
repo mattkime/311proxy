@@ -107,10 +107,10 @@ function reporter(){
 };
 	let newSession = function(){
 		let promise = fetch311( url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger');
-		return Rx.Observable.fromPromise(promise).flatMap(setSessionId(this.sessionId));
+		return Rx.Observable.fromPromise(promise).flatMap(setSessionId);
 	};
 
-	var setSessionId = sessionId => res => {
+	var setSessionId = res => {
 		let cookies = res.headers.get('set-cookie'),
 			{ JSESSIONID } = cookie.parse(cookies);
 
@@ -118,25 +118,42 @@ function reporter(){
 
 		reqCookie = cookie.serialize('JSESSIONID',JSESSIONID);
 
-		console.log( sessionId );
-
 		console.log( 'session id:', JSESSIONID );
-		sessionId = JSESSIONID;
 
 		return Rx.Observable.fromPromise( res.text() )
 			.map(function(value){
-				let formId = jsdom.jsdom( value ).querySelectorAll("#formId");
-				return formId.length === 1 ? sessionId : null;
+				//nextPage
+				let document = jsdom.jsdom( value ),
+					formId = document.querySelectorAll("#formId"),
+					formIdExists = formId.length === 1,
+					nextPage = document.querySelectorAll("#nextPage"),
+					nextPageExists = false;
+
+				if( nextPage
+					&& nextPage.length === 1
+					&& nextPage[0].getAttribute("name") === "_target1" ){
+						nextPageExists = true;
+				}
+				console.log("formId present:", formId.length === 1 );
+				console.log("#nextPage:", nextPage[0].getAttribute("name"));
+				return formIdExists && nextPageExists ? JSESSIONID : null;
 			});
 	};
 
 	return {
 		sessionId : 12345,
+		page : 0,
 		report : function(){
-			var observ = newSession.call(this);
-			console.log(this.sessionId);
+			let that = this,
+				observ = newSession.call(this)
+					.map( val => {
+						this.sessionId = val;
+						return val;
+					});
 			return observ;
 		}
+		//todo - do we have a sessionId?
+		// if so, new page request
 	};
 }
 
