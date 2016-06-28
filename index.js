@@ -157,4 +157,22 @@ function reporter(){
 	};
 }
 
-reporter().report().subscribe((val) => console.log(val));
+var data = [{
+		'formFields.X_CHAR1_1': '__No',
+		'formFields.Vehicle Type': '__Yellow',
+		'formFields.Affidavit': '__Yes',
+		'formFields.Hearing': '__Yes',
+		'_target1': 'START',
+	}, {
+		'formFields.Complaint Type' : '1-6VL-135',
+		'formFields.Descriptor 1' : '1-6VN-327',
+		'formFields.Descriptor 2': '1-6VO-1637',
+		'formFields.Taxi Driver Name': '',
+		'formFields.Taxi License Number':'',
+		'formFields.Taxi Medallion Number':'5J18',
+		'formFields.Complaint Details': 'taxi parked in bike lane',
+		'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
+		'_target2':'',
+	}];
+
+reporter().report(data).subscribe((val) => console.log(val));
