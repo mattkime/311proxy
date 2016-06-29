@@ -6,6 +6,7 @@ var fetch = require('node-fetch'),
 	Rx = require('rxjs'),
 	beautify = require('js-beautify').html;
 
+require('source-map-support').install();
 
 if( process.env.NODE_ENV == 'dev'){
 	//for working with charles proxy
@@ -144,7 +145,8 @@ function reporter(){
 		sessionId : 12345,
 		page : 0,
 		report : function(data){
-			return Rx.Observable.create(function (observer) {
+			console.log("report");
+			return Rx.Observable.create(function (ob) {
 				let that = this,
 					//this should set sessionId or return error. no need to return value
 					observ = newSession.call(this)
@@ -154,9 +156,9 @@ function reporter(){
 						}).subscribe(function(val){
 							console.log("inner subscribe");
 							console.log(val);
-							observer.onNext( val );
+							ob.next( val );
 						});
-				//return observ;
+				return observ;
 			});
 		}
 		//todo - do we have a sessionId?
@@ -182,4 +184,4 @@ var data = [{
 		'_target2':'',
 	}];
 
-reporter().report(data).subscribe((val) => console.log(val));
+reporter().report(data).subscribe((val) => console.log(val))
