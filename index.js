@@ -154,6 +154,12 @@ function reporter(){
 							this.sessionId = val;
 							return val;
 						}).subscribe(function(val){
+							let data$ = Rx.Observable.create(function (ob) {
+								data.forEach(function(item){
+
+								});
+
+							})
 							console.log("inner subscribe");
 							console.log(val);
 							ob.next( val );
@@ -182,6 +188,25 @@ var data = [{
 		'formFields.Complaint Details': 'taxi parked in bike lane',
 		'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
 		'_target2':'',
-	}];
+	}, {
+		'formFields.Location Type': 'Street',
+		'formFields.Address Type': '__Intersection',
+		'formFields.Incident Borough 5': '1-2ZP',
+		'formFields.On Street':'Bedford Ave',
+		'formFields.Cross Street 1': 'Willoughby Ave',
+		'formFields.Location Details':'just north of intersection',
+		'_target3':'',
+	}, {
+		'formFields.Personal Email Address' : '',
+		'formFields.Contact First Name' :'',
+		'formFields.Contact Last Name' :'',
+		'formFields.Contact Business Phone': '',
+		'formFields.Contact Borough':'1-4X9-314',
+		'formFields.Contact Address Number': '',
+		'formFields.Contact Street Name':'',
+		'formFields.Contact Apartment Number':'',
+		'_target4':''
+	}
+	];
 
 reporter().report(data).subscribe((val) => console.log(val))
