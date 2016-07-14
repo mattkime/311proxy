@@ -67,7 +67,7 @@ var thirdRequest = function(){
 };
 
 
-
+/*
 function sendData(){
 	//todo return errors
 	newSession()
@@ -77,7 +77,7 @@ function sendData(){
 		.then( thirdRequest )
 		.then( processSecondResponse )
 };
-
+*/
 //sendData();
 
 function reporter(){
@@ -144,25 +144,51 @@ function reporter(){
 	return {
 		sessionId : 12345,
 		page : 0,
-		report : function(data){
-			console.log("report");
+		sendData : function(data){
+			return Rx.Observable.create(function(ob){
+				var i = 0;
+				var getUrl = function(url){
+					//todo set url, convert to formdata....set cookie?
+					return Rx.Observable.fromPromise( fetch(url))
+						.flatMap(function(res){
+							return Rx.Observable.fromPromise(res.text())
+						})
+					};
+
+				var sub = getUrl(data[i++]);
+				sub.subscribe(subscribe);
+
+				function subscribe(x) {
+						console.log('Next: ' + x.length);
+						ob.onNext(x);
+						if(i < urls.length){
+						  getUrl(urls[i++]).subscribe(subscribe);
+						}else{
+						  ob.onCompleted();
+						}
+				}
+			});
+		},
+		getSession : function(){
 			return Rx.Observable.create(function (ob) {
-				let that = this,
+				let that = this;
 					//this should set sessionId or return error. no need to return value
-					observ = newSession.call(this)
+					//observ = newSession.call(this)
+					newSession.call(this)
 						.map( val => {
 							this.sessionId = val;
 							return val;
 						}).subscribe(function(val){
-							console.log("inner subscribe");
-							console.log(val);
 							ob.next( val );
+							ob.complete();
 						});
-				return observ;
+				//return observ;
 			});
+		},
+		report : function(data){
+			var sendData = this.sendData;
+			return this.getSession().flatMap(() => sendData(data));
 		}
-		//todo - do we have a sessionId?
-		// if so, new page request
 	};
 }
 
