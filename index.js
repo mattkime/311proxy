@@ -150,16 +150,27 @@ if( process.env.NODE_ENV == 'dev'){
 
 	return {
 		sessionId : 12345,
-		page : 0,
+		page : 0,/*
+		justTheForm : function( text ){
+			let document = jsdom.jsdom( value ),
+				formId = document.querySelectorAll("#formId");
+			return formId.outerHTML;
+		},*/
 		sendData : function(data){
+		let justTheForm =  function( text ){
+			let document = jsdom.jsdom( text ),
+				formId = document.querySelectorAll("#formId"),
+				formHtml = formId[0].outerHTML;
+
+			return require('js-beautify').html( formHtml.replace(/\n/g, ""), { "preserve_newlines": true, "indent_size": 0 } );
+		};
+			let that = this;
 			return Rx.Observable.create(function(ob){
 				var i = 0;
 				var getUrl = function(data){
 					//todo set url, convert to formdata....set cookie?
 					return Rx.Observable.fromPromise( fetch311( objToFormData( data ), url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger'))
-						.flatMap(function(res){
-							return Rx.Observable.fromPromise(res.text())
-						})
+						.flatMap( res => Rx.Observable.fromPromise(res.text()) ).do( val => console.log( justTheForm(val).replace(/\n/g, "")) )
 					};
 
 				var sub = getUrl(data[i++]);
@@ -223,7 +234,7 @@ var data = [{
 		'formFields.Complaint Details': 'taxi parked in bike lane',
 		'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
 		'_target2':'',
-	}, /*{
+	}, {
 		'formFields.Location Type': 'Street',
 		'formFields.Address Type': '__Intersection',
 		'formFields.Incident Borough 5': '1-2ZP',
@@ -231,7 +242,7 @@ var data = [{
 		'formFields.Cross Street 1': 'Willoughby Ave',
 		'formFields.Location Details':'just north of intersection',
 		'_target3':'',
-	}, {
+	}, /*{
 		'formFields.Personal Email Address' : '',
 		'formFields.Contact First Name' :'',
 		'formFields.Contact Last Name' :'',
@@ -244,4 +255,4 @@ var data = [{
 	}*/
 	];
 
-reporter().report(data).subscribe((val) => console.log(val))
+reporter().report(data).subscribe((val) => console.log('hi'))
