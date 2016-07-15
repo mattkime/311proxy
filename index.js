@@ -55,28 +55,28 @@ var data = [{
 	}, {
 		'formFields.Complaint Type': '1-6VL-207',
 		'formFields.Descriptor 1': '1-6VN-6', //from dropdown
-		'formFields.Complaint Details': 'pickup truck parked in \'never park here\' zone in front of rei on lafayette st',
-		'formFields.Date/Time of Occurrence': '06/30/2016 09:36:12 AM',
-		'formFields.ATTRIB_46': 'this is a daily problem',
+		'formFields.Complaint Details': '',
+		'formFields.Date/Time of Occurrence': '07/15/2016 09:36:12 AM',
+		'formFields.ATTRIB_46': '',
 		'_target2':''
 	}, {
 		'formFields.Location Type': '1-6VO-1630',
 		'formFields.Address Type': '__Street',
 		'formFields.Incident Borough 6': '1-4X9-316',
-		'formFields.Incident Address Number': '303',
-		'formFields.Incident Street Name': 'Lafayette St',
+		'formFields.Incident Address Number': '',
+		'formFields.Incident Street Name': '',
 		'formFields.Location Details': '',
 		'_target3': ''
 	}, {
-		'formFields.Personal Email Address': 'matt@mattki.me',
-		'formFields.Contact First Name': 'Matt',
-		'formFields.Contact Last Name': 'Kime',
-		'formFields.Contact Business Phone': '616-666-6561',
-		'formFields.Contact Home Phone': '616-666-6561',
+		'formFields.Personal Email Address': '',
+		'formFields.Contact First Name': '',
+		'formFields.Contact Last Name': '',
+		'formFields.Contact Business Phone': '',
+		'formFields.Contact Home Phone': '',
 		'formFields.Contact Borough': '1-4X9-314',
-		'formFields.Contact Address Number': '167',
-		'formFields.Contact Street Name': 'Quincy St.',
-		'formFields.Contact Apartment Number': '2',
+		'formFields.Contact Address Number': '',
+		'formFields.Contact Street Name': '',
+		'formFields.Contact Apartment Number': '',
 		'_target4' : ''
 	}, {
 		'replace_target': '',
