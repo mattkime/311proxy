@@ -7,13 +7,13 @@ var fetch = require('node-fetch'),
 	beautify = require('js-beautify').html;
 
 require('source-map-support').install();
-
+/*
 if( process.env.NODE_ENV == 'dev'){
 	//for working with charles proxy
 	process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 	url311 = 'https://localhost:60103/apps/311universalintake/form.htm';
 }
-
+*/
 var objToFormData = ( obj ) => {
 	let data = new FormData();
 
@@ -81,6 +81,11 @@ function sendData(){
 //sendData();
 
 function reporter(){
+if( process.env.NODE_ENV == 'dev'){
+	//for working with charles proxy
+	process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+	url311 = 'https://localhost:60103/apps/311universalintake/form.htm';
+}
 	var url311 = 'https://www1.nyc.gov/apps/311universalintake/form.htm',
 		userAgent= 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36';
 
@@ -104,6 +109,8 @@ function reporter(){
 		config.headers['Content-Length'] = formData.getLengthSync();
 	}
 
+	console.log( url );
+	console.log( config );
 	return fetch( url, config);
 };
 	let newSession = function(){
@@ -147,9 +154,9 @@ function reporter(){
 		sendData : function(data){
 			return Rx.Observable.create(function(ob){
 				var i = 0;
-				var getUrl = function(url){
+				var getUrl = function(data){
 					//todo set url, convert to formdata....set cookie?
-					return Rx.Observable.fromPromise( fetch(url))
+					return Rx.Observable.fromPromise( fetch311( objToFormData( data ), url311 + '?serviceName=TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger'))
 						.flatMap(function(res){
 							return Rx.Observable.fromPromise(res.text())
 						})
@@ -160,11 +167,11 @@ function reporter(){
 
 				function subscribe(x) {
 						console.log('Next: ' + x.length);
-						ob.onNext(x);
-						if(i < urls.length){
-						  getUrl(urls[i++]).subscribe(subscribe);
+						ob.next(x);
+						if(i < data.length){
+						  getUrl(data[i++]).subscribe(subscribe);
 						}else{
-						  ob.onCompleted();
+						  ob.complete();
 						}
 				}
 			});
@@ -216,7 +223,7 @@ var data = [{
 		'formFields.Complaint Details': 'taxi parked in bike lane',
 		'formFields.Date/Time of Occurrence':'02/19/2016 09:50:29 AM',
 		'_target2':'',
-	}, {
+	}, /*{
 		'formFields.Location Type': 'Street',
 		'formFields.Address Type': '__Intersection',
 		'formFields.Incident Borough 5': '1-2ZP',
@@ -234,7 +241,7 @@ var data = [{
 		'formFields.Contact Street Name':'',
 		'formFields.Contact Apartment Number':'',
 		'_target4':''
-	}
+	}*/
 	];
 
 reporter().report(data).subscribe((val) => console.log(val))
