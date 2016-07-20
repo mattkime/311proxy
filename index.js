@@ -1,6 +1,7 @@
 var reporter = require('./lib/reporter'),
 	inquirer = require('inquirer'),
-	complaint_info = require('./lib/complaint-dsl.js');
+	complaint_info = require('./lib/complaint-dsl.js'),
+	config = require('./config.json');
 
 require('source-map-support').install();
 /*
@@ -62,27 +63,20 @@ var carserviceData = [{
 		'formFields.Taxi License Number': '',
 		'formFields.Vehicle Type' : '1-B3X-7',
 		'formFields.Complaint Details': 'cab blocking bike lane',
-		'formFields.Date/Time of Occurrence':'06/20/2016 06:01:00 PM',
+		'formFields.Date/Time of Occurrence':'06/19/2016 10:02:00 AM',
 		'_target2':'',
 	},{
 		'formFields.Location Type': 'Street',
 		'formFields.Address Type': '__Intersection',
-		'formFields.Incident Borough 5': '1-2ZP', // bronx - 1-2ZN, brooklyn - 1-2ZP, manhattan - 1-2ZR, queens - 1-2ZT, staten island - 1-2ZV// bronx 1-4X9-313, brooklyn 1-4X9-314, manhattan 1-4X9-316, queens 1-4X9-315, staten island 1-4X9-318
-		'formFields.On Street':'',
-		'formFields.Cross Street 1': '',
+		'formFields.Incident Borough 5': '1-2ZR', // bronx - 1-2ZN, brooklyn - 1-2ZP, manhattan - 1-2ZR, queens - 1-2ZT, staten island - 1-2ZV// bronx 1-4X9-313, brooklyn 1-4X9-314, manhattan 1-4X9-316, queens 1-4X9-315, staten island 1-4X9-318
+		'formFields.On Street':'Chrystie St',
+		'formFields.Cross Street 1': 'Hester  St',
 		'formFields.Location Details':'',
 		'_target3':'',
 	}, {
-		'formFields.Personal Email Address' : '',
-		'formFields.Contact First Name' :'',
-		'formFields.Contact Last Name' :'',
-		'formFields.Contact Business Phone': '',
-		'formFields.Contact Borough':'1-4X9-314',
-		'formFields.Contact Address Number': '',
-		'formFields.Contact Street Name':'',
-		'formFields.Contact Apartment Number':'',
+		...config.contact_info,
 		'_target4':''
-	},{
+	}, {
 		'replace_target': '',
 		'file1': require('fs').createReadStream(''),
 		'_finish': 'SUBMIT FORM'

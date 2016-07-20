@@ -34,3 +34,4 @@ node_modules
 
 index-compiled.js
 index-compiled.js.map
+config.json
