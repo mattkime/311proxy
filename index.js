@@ -25,7 +25,7 @@ inquirer.prompt([
 	{'name':'photo_2',
 	'message':'photo 2'}]).then( answers =>
 		console.log(answers)
-		#reporter().report('TLC%20FHV%20Driver%20Unsafe%20Driving', formatTaxiComplaint( answers) ).subscribe(() => {})
+		//reporter().report('TLC%20FHV%20Driver%20Unsafe%20Driving', formatTaxiComplaint( answers) ).subscribe(() => {})
 	);
 
 /*
@@ -67,7 +67,7 @@ var yelowData = [{
 	];
 */
 
-var formatTaxiComplaint( fields ){
+var formatTaxiComplaint = function( fields ){
 	var carserviceData = [{
 			'formFields.X_CHAR1_1':'__Within the 5 Boroughs of New York City',
 			'formFields.License Type':'1-B3X-3', //Vehicle License Plate
