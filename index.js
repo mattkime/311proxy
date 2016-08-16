@@ -14,6 +14,8 @@ inquirer.prompt([
 	'message':'Incident date/time'},
 	{'name':'location_type',
 	'message':'location type'},
+	{'name':'borough',
+	'message':'borough'},
 	{'name':'on_street',
 	'message':'on street'},
 	{'name':'cross_street',
@@ -45,48 +47,35 @@ var yelowData = [{
 		'formFields.Complaint Details': '',
 		'formFields.Date/Time of Occurrence':'',
 		'_target2':'',
-	}, {
-		'formFields.Location Type': 'Street',
-		'formFields.Address Type': '__Intersection',
-		'formFields.Incident Borough 5': '1-2ZP',
-		'formFields.On Street':'',
-		'formFields.Cross Street 1': '',
-		'formFields.Location Details':'',
-		'_target3':'',
-	}, {
-		'formFields.Personal Email Address' : '',
-		'formFields.Contact First Name' :'',
-		'formFields.Contact Last Name' :'',
-		'formFields.Contact Business Phone': '',
-		'formFields.Contact Borough':'1-4X9-314',
-		'formFields.Contact Address Number': '',
-		'formFields.Contact Street Name':'',
-		'formFields.Contact Apartment Number':'',
-		'_target4':''
-	} 
+	}
 	];
 */
 
+var formatTaxiComplaintPg1 = function( fields ){
+	return {
+		'formFields.X_CHAR1_1':'__Within the 5 Boroughs of New York City',
+		'formFields.License Type':'1-B3X-3', //Vehicle License Plate
+		'formFields.Affidavit': '__Yes',
+		'formFields.Hearing': '__Yes',
+		'_target1': 'START',
+	};
+};
+
 var formatTaxiComplaint = function( fields ){
-	var carserviceData = [{
-			'formFields.X_CHAR1_1':'__Within the 5 Boroughs of New York City',
-			'formFields.License Type':'1-B3X-3', //Vehicle License Plate
-			'formFields.Affidavit': '__Yes',
-			'formFields.Hearing': '__Yes',
-			'_target1': 'START',
-		}, {
+	var carserviceData = [
+		formatTaxiComplaintPg1(), {
 			'formFields.Complaint Type' : '1-B3X-15',
 			'formFields.Descriptor 1' : '1-B3Y-2', //i have no idea what these fields mean
 			'formFields.Descriptor 2': '1-B3Z-6',
-			'formFields.Taxi License Number': '',
+			'formFields.Taxi License Number': field.plate,
 			'formFields.Vehicle Type' : '1-B3X-7',
-			'formFields.Complaint Details': 'cab blocking bike lane',
-			'formFields.Date/Time of Occurrence':'06/19/2016 10:02:00 AM',
+			'formFields.Complaint Details': field.complaint,
+			'formFields.Date/Time of Occurrence': field.date_time,
 			'_target2':'',
 		},{
 			'formFields.Location Type': 'Street',
 			'formFields.Address Type': '__Intersection',
-			'formFields.Incident Borough 5': '1-2ZR', // bronx - 1-2ZN, brooklyn - 1-2ZP, manhattan - 1-2ZR, queens - 1-2ZT, staten island - 1-2ZV// bronx 1-4X9-313, brooklyn 1-4X9-314, manhattan 1-4X9-316, queens 1-4X9-315, staten island 1-4X9-318
+			'formFields.Incident Borough 5': field.borough, //'1-2ZR', // bronx - 1-2ZN, brooklyn - 1-2ZP, manhattan - 1-2ZR, queens - 1-2ZT, staten island - 1-2ZV// bronx 1-4X9-313, brooklyn 1-4X9-314, manhattan 1-4X9-316, queens 1-4X9-315, staten island 1-4X9-318
 			'formFields.On Street':'Chrystie St',
 			'formFields.Cross Street 1': 'Hester  St',
 			'formFields.Location Details':'',
