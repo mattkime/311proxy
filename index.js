@@ -11,11 +11,35 @@ inquirer.prompt([
 	{'name':'complaint',
 	'message':'complaint'},
 	{'name':'date_time',
-	'message':'Incident date/time'},
-	{'name':'location_type',
-	'message':'location type'},
+	'message':'Incident date/time (07/15/2016 09:36:12 AM)'},
+	//{'name':'location_type',
+	//'message':'location type'},
 	{'name':'borough',
-	'message':'borough'},
+	'type':'list',
+	'choices':['bronx', 'brooklyn', 'manhattan', 'queens', 'staten island'],
+	'message':'borough',
+	'filter': str => {
+		let val = '';
+		switch( str ){
+			case 'bronx':
+				val = '1-2ZN';
+				break;
+			case 'brooklyn':
+				val = '1-2ZP';
+				break;
+			case 'manhattan':
+				val = '1-2ZR';
+				break;
+			case 'queens':
+				val = '1-2ZT';
+				break;
+			case 'staten island':
+				val = '1-2ZV';
+				break;
+		}
+
+		return val;
+	}},
 	{'name':'on_street',
 	'message':'on street'},
 	{'name':'cross_street',
@@ -23,12 +47,20 @@ inquirer.prompt([
 	{'name':'location_details',
 	'message':'location details'},
 	{'name':'photo',
-	'message':'photo'},
+	'message':'photo',
+	'filter': str => str.replace(/\\ /g," ").trim()},
 	{'name':'photo_2',
-	'message':'photo 2'}]).then( answers =>
-		console.log(answers)
-		//reporter().report('TLC%20FHV%20Driver%20Unsafe%20Driving', formatTaxiComplaint( answers) ).subscribe(() => {})
-	);
+	'message':'photo 2',
+	'filter': str => str.replace(/\\ /g," ").trim(),
+	'when': function( obj ){ return !!obj.photo }},
+	{'name':'photo_3',
+	'message':'photo 3',
+	'filter': str => str.replace(/\\ /g," ").trim(),
+	'when': function( obj ){ return !!obj.photo_2 }}]).then( answers => {
+		console.log(answers);
+		console.log( formatTaxiComplaint( answers) );
+		reporter().report('TLC%20FHV%20Driver%20Unsafe%20Driving', formatTaxiComplaint( answers) ).subscribe(() => {})
+	});
 
 /*
 var yelowData = [{
@@ -51,7 +83,8 @@ var yelowData = [{
 	];
 */
 
-var formatTaxiComplaintPg1 = function( fields ){
+var formatComplaintType = function( fields ){
+	console.log('start formatComplaintType');
 	return {
 		'formFields.X_CHAR1_1':'__Within the 5 Boroughs of New York City',
 		'formFields.License Type':'1-B3X-3', //Vehicle License Plate
@@ -61,34 +94,67 @@ var formatTaxiComplaintPg1 = function( fields ){
 	};
 };
 
+var formatComplaintDetails = function( fields ){
+	var obj = {
+		'formFields.Complaint Type' : '1-B3X-15',
+		'formFields.Descriptor 1' : '1-B3Y-2', //i have no idea what these fields mean
+		'formFields.Descriptor 2': '1-B3Z-6',
+		'formFields.Taxi License Number': fields.plate,
+		'formFields.Vehicle Type' : '1-B3X-7',
+		'formFields.Complaint Details': fields.complaint,
+		'formFields.Date/Time of Occurrence': fields.date_time,
+		'_target2':'',
+	};
+
+	if( fields.photo ){ obj['formFields.Complaint Details'] += " - photo attached"; }
+
+	return obj;
+};
+
+var formatComplaintLocation = function( fields ){
+	return {
+		'formFields.Location Type': 'Street',
+		'formFields.Address Type': '__Intersection',
+		'formFields.Incident Borough 5': fields.borough,
+		'formFields.On Street': fields.on_street,
+		'formFields.Cross Street 1': fields.cross_street,
+		'formFields.Location Details': fields.location_details,
+		'_target3':'',
+	};
+};
+
+var formatComplaintPhoto = function( fields ){
+	var obj =  {
+		'replace_target': '',
+		'_finish': 'SUBMIT FORM'
+	};
+
+	if( fields.photo ){
+		obj.file1 = require('fs').createReadStream( fields.photo );
+	}
+
+	if( fields.photo_2 ){
+		obj.file2 = require('fs').createReadStream( fields.photo_2 );
+	}
+
+	if( fields.photo_3 ){
+		obj.file3 = require('fs').createReadStream( fields.photo_3 );
+	}
+
+	return obj;
+};
+
 var formatTaxiComplaint = function( fields ){
 	var carserviceData = [
-		formatTaxiComplaintPg1(), {
-			'formFields.Complaint Type' : '1-B3X-15',
-			'formFields.Descriptor 1' : '1-B3Y-2', //i have no idea what these fields mean
-			'formFields.Descriptor 2': '1-B3Z-6',
-			'formFields.Taxi License Number': field.plate,
-			'formFields.Vehicle Type' : '1-B3X-7',
-			'formFields.Complaint Details': field.complaint,
-			'formFields.Date/Time of Occurrence': field.date_time,
-			'_target2':'',
-		},{
-			'formFields.Location Type': 'Street',
-			'formFields.Address Type': '__Intersection',
-			'formFields.Incident Borough 5': field.borough, //'1-2ZR', // bronx - 1-2ZN, brooklyn - 1-2ZP, manhattan - 1-2ZR, queens - 1-2ZT, staten island - 1-2ZV// bronx 1-4X9-313, brooklyn 1-4X9-314, manhattan 1-4X9-316, queens 1-4X9-315, staten island 1-4X9-318
-			'formFields.On Street':'Chrystie St',
-			'formFields.Cross Street 1': 'Hester  St',
-			'formFields.Location Details':'',
-			'_target3':'',
-		}, {
+		formatComplaintType(),
+		formatComplaintDetails( fields ),
+		formatComplaintLocation( fields ),
+		{
 			...config.contact_info,
 			'_target4':''
-		}, {
-			'replace_target': '',
-			//'file1': require('fs').createReadStream(''),
-			'_finish': 'SUBMIT FORM'
-		}];
-
+		},
+		formatComplaintPhoto( fields )
+	];
 	return carserviceData
 };
 
