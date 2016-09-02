@@ -121,7 +121,7 @@ var formatTaxiComplaint = function( fields ){
 	console.log('formatTaxiComplaint');
 	let complaintData = [];
 
-	if( fields.vehicle_type = "__Yellow" ){
+	if( fields.vehicle_type === "__Yellow" ){
 		complaintData.push( formatComplaintTypeYellow() );
 		complaintData.push( formatComplaintDetailsYellow( fields ));
 	} else {
