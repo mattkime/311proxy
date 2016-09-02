@@ -1,66 +1,10 @@
 var reporter = require('./lib/reporter'),
-	inquirer = require('inquirer'),
+	prompt = require('./lib/prompt'),
 	complaint_info = require('./lib/complaint-dsl.js'),
 	config = require('./config.json');
 
 require('source-map-support').install();
 
-inquirer.prompt([
-	{'name':'plate',
-	'message': 'license plate'},
-	{'name':'complaint',
-	'message':'complaint'},
-	{'name':'date_time',
-	'message':'Incident date/time (07/15/2016 09:36:12 AM)'},
-	//{'name':'location_type',
-	//'message':'location type'},
-	{'name':'borough',
-	'type':'list',
-	'choices':['bronx', 'brooklyn', 'manhattan', 'queens', 'staten island'],
-	'message':'borough',
-	'filter': str => {
-		let val = '';
-		switch( str ){
-			case 'bronx':
-				val = '1-2ZN';
-				break;
-			case 'brooklyn':
-				val = '1-2ZP';
-				break;
-			case 'manhattan':
-				val = '1-2ZR';
-				break;
-			case 'queens':
-				val = '1-2ZT';
-				break;
-			case 'staten island':
-				val = '1-2ZV';
-				break;
-		}
-
-		return val;
-	}},
-	{'name':'on_street',
-	'message':'on street'},
-	{'name':'cross_street',
-	'message':'cross street'},
-	{'name':'location_details',
-	'message':'location details'},
-	{'name':'photo',
-	'message':'photo',
-	'filter': str => str.replace(/\\ /g," ").trim()},
-	{'name':'photo_2',
-	'message':'photo 2',
-	'filter': str => str.replace(/\\ /g," ").trim(),
-	'when': function( obj ){ return !!obj.photo }},
-	{'name':'photo_3',
-	'message':'photo 3',
-	'filter': str => str.replace(/\\ /g," ").trim(),
-	'when': function( obj ){ return !!obj.photo_2 }}]).then( answers => {
-		console.log(answers);
-		console.log( formatTaxiComplaint( answers) );
-		reporter().report('TLC%20FHV%20Driver%20Unsafe%20Driving', formatTaxiComplaint( answers) ).subscribe(() => {})
-	});
 
 /*
 var yelowData = [{
@@ -82,9 +26,19 @@ var yelowData = [{
 	}
 	];
 */
+var formatComplaintTypeYellow = function( fields ){
+	console.log('start formatComplaintTypeYellow');
+	return {
+		'formFields.X_CHAR1_1': '__No',
+		'formFields.Vehicle Type': '__Yellow',
+		'formFields.Affidavit': '__Yes',
+		'formFields.Hearing': '__Yes',
+		'_target1': 'START',
+	};
+};
 
-var formatComplaintType = function( fields ){
-	console.log('start formatComplaintType');
+var formatComplaintTypeCarService = function( fields ){
+	console.log('start formatComplaintTypeCarService');
 	return {
 		'formFields.X_CHAR1_1':'__Within the 5 Boroughs of New York City',
 		'formFields.License Type':'1-B3X-3', //Vehicle License Plate
@@ -94,7 +48,25 @@ var formatComplaintType = function( fields ){
 	};
 };
 
-var formatComplaintDetails = function( fields ){
+var formatComplaintDetailsYellow = function( fields ){
+	console.log( 'formatComplaintDetailsYellow' );
+	var obj = {
+		'formFields.Complaint Type' : '1-6VL-135',
+		'formFields.Descriptor 1' : '1-6VN-327', //i have no idea what these fields mean
+		'formFields.Descriptor 2': '1-6VO-1637',
+		'formFields.Taxi Medallion Number': fields.medallion,
+		'formFields.Complaint Details': fields.complaint,
+		'formFields.Date/Time of Occurrence': fields.date_time,
+		'_target2':'',
+	};
+
+	if( fields.photo ){ obj['formFields.Complaint Details'] += " - photo attached"; }
+
+	return obj;
+};
+
+var formatComplaintDetailsCarService = function( fields ){
+	console.log( 'formatComplaintDetailsCarService');
 	var obj = {
 		'formFields.Complaint Type' : '1-B3X-15',
 		'formFields.Descriptor 1' : '1-B3Y-2', //i have no idea what these fields mean
@@ -112,6 +84,7 @@ var formatComplaintDetails = function( fields ){
 };
 
 var formatComplaintLocation = function( fields ){
+	console.log( 'formatComplaintLocation');
 	return {
 		'formFields.Location Type': 'Street',
 		'formFields.Address Type': '__Intersection',
@@ -145,18 +118,34 @@ var formatComplaintPhoto = function( fields ){
 };
 
 var formatTaxiComplaint = function( fields ){
-	var carserviceData = [
-		formatComplaintType(),
-		formatComplaintDetails( fields ),
+	console.log('formatTaxiComplaint');
+	let complaintData = [];
+
+	if( fields.vehicle_type = "__Yellow" ){
+		complaintData.push( formatComplaintTypeYellow() );
+		complaintData.push( formatComplaintDetailsYellow( fields ));
+	} else {
+		complaintData.push( formatComplaintTypeCarService() );
+		complaintData.push( formatComplaintDetailsCarService( fields ));
+	}
+
+	Array.prototype.push.apply( complaintData, [
 		formatComplaintLocation( fields ),
 		{
 			...config.contact_info,
 			'_target4':''
 		},
 		formatComplaintPhoto( fields )
-	];
-	return carserviceData
+	]);
+	return complaintData;
 };
+
+prompt().then( answers => {
+	let url_bit = answers.vehicle_type == '__Yellow' ? 'TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger' : 'TLC%20FHV%20Driver%20Unsafe%20Driving';
+	console.log('then', answers);
+	console.log( formatTaxiComplaint( answers) );
+	reporter().report( url_bit, formatTaxiComplaint( answers) ).subscribe(() => {})
+});
 
 //reporter().report('TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger', data).subscribe((val) => console.log('hi'))
 //todo - print val, return document.queryElementsById('#sr_number').innerHtml
