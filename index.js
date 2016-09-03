@@ -142,7 +142,7 @@ var formatTaxiComplaint = function( fields ){
 
 prompt().then( answers => {
 	let url_bit = answers.vehicle_type == '__Yellow' ? 'TLC%20Taxi%20Driver%20Unsafe%20Driving%20Non-Passenger' : 'TLC%20FHV%20Driver%20Unsafe%20Driving';
-	console.log('then', answers);
+	console.log('answers', answers);
 	console.log( formatTaxiComplaint( answers) );
 	reporter().report( url_bit, formatTaxiComplaint( answers) ).subscribe(() => {})
 });
